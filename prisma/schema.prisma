@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────
+// ADMIN
+// ─────────────────────────────────────────
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// LOCATIONS
+// ─────────────────────────────────────────
+
+model Location {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  address     String
+  city        String
+  latitude    Float
+  longitude   Float
+  category    Category
+  isApproved  Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+  features    Feature[]
+  images      Image[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Feature {
+  id         String   @id @default(cuid())
+  name       String   // e.g. "Ramp", "Elevator", "Accessible Toilet"
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model Image {
+  id         String   @id @default(cuid())
+  url        String
+  alt        String?
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+enum Category {
+  RESTAURANT
+  CAFE
+  HOTEL
+  SHOPPING
+  TRANSPORT
+  HOSPITAL
+  PHARMACY
+  PARK
+  EDUCATION
+  ENTERTAINMENT
+  OTHER
+}
+
+// ─────────────────────────────────────────
+// MEDIA (Audio & Video for uni requirement)
+// ─────────────────────────────────────────
+
+model Media {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  type        MediaType
+  url         String    // YouTube embed URL or audio file URL
+  createdAt   DateTime  @default(now())
+}
+
+enum MediaType {
+  VIDEO
+  AUDIO
+}
