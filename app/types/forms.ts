@@ -14,8 +14,8 @@ export const locationSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
-  latitude: z.coerce.number().min(-90).max(90, 'Invalid latitude'),
-  longitude: z.coerce.number().min(-180).max(180, 'Invalid longitude'),
+  latitude: z.number().min(-90).max(90, 'Invalid latitude'),
+  longitude: z.number().min(-180).max(180, 'Invalid longitude'),
   category: z.enum([
     'RESTAURANT',
     'CAFE',
@@ -39,9 +39,10 @@ export const mediaSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   type: z.enum(['VIDEO', 'AUDIO']),
-  url: z.url('Invalid URL'),
+  url: z.url({ message: 'Invalid URL' }),
 })
 
 export type LoginFormData = z.infer<typeof loginSchema>
 export type LocationFormData = z.infer<typeof locationSchema>
 export type MediaFormData = z.infer<typeof mediaSchema>
+

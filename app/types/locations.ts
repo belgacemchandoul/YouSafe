@@ -11,8 +11,8 @@ export interface CreateLocationBody {
   category: Category
   isApproved?: boolean
   isFeatured?: boolean
-  features?: string[]
-  images?: string[]
+  features?: { id: string; name: string }[]
+  images?: { id: string; url: string }[]
 }
 
 export interface UpdateLocationBody extends Partial<CreateLocationBody> {
