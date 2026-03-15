@@ -8,7 +8,7 @@ import {
 } from '@/app/utils/api'
 import { isValidMediaType, isValidUrl } from '@/app/utils/validation'
 import { CreateMediaBody } from '@/app/types/media'
-
+import { requireAuth, unauthorizedError } from '@/app/utils/api'
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -33,6 +33,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
+  const session = await requireAuth()
+  if (!session) return unauthorizedError()
   try {
     const { id } = await params
     const body: Partial<CreateMediaBody> = await req.json()

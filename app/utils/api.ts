@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export const successResponse = (data: unknown, status = 200) => {
   return NextResponse.json(data, { status })
@@ -18,4 +20,10 @@ export const notFoundError = (resource: string) => {
 
 export const unauthorizedError = () => {
   return errorResponse('Unauthorized', 401)
+}
+
+export const requireAuth = async () => {
+  const session = await getServerSession(authOptions)
+  if (!session) return null
+  return session
 }

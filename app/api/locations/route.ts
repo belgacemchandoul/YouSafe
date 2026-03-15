@@ -10,6 +10,7 @@ import {
   isValidCategory,
   isValidCoordinates
 } from '@/app/utils/validation'
+import { requireAuth, unauthorizedError } from '@/app/utils/api'
 
 export async function GET(): Promise<Response> {
   try {
@@ -31,6 +32,8 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
+  const session = await requireAuth()
+if (!session) return unauthorizedError()
   try {
     const body: CreateLocationBody = await req.json()
 
@@ -74,10 +77,10 @@ export async function POST(req: NextRequest): Promise<Response> {
         isApproved: isApproved ?? true,
         isFeatured: isFeatured ?? false,
         features: {
-          create: features?.map((name: string) => ({ name })) ?? []
+          create: features?.map((feature: { id: string; name: string }) => ({ name: feature.name })) ?? []
         },
         images: {
-          create: images?.map((url: string) => ({ url })) ?? []
+          create: images?.map((image: { id: string; url: string }) => ({ url: image.url })) ?? []
         }
       },
       include: {

@@ -11,7 +11,7 @@ import {
   isValidCategory,
   isValidCoordinates
 } from '@/app/utils/validation'
-
+import { requireAuth, unauthorizedError } from '@/app/utils/api'
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -40,6 +40,8 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
+  const session = await requireAuth()
+  if (!session) return unauthorizedError()
   try {
     const { id } = await params
     const body: UpdateLocationBody = await req.json()
@@ -100,12 +102,12 @@ export async function PUT(
         ...(isFeatured !== undefined && { isFeatured }),
         ...(features && {
           features: {
-            create: features.map((name: string) => ({ name }))
+            create: features.map((feature: { id: string; name: string }) => ({ name: feature.name }))
           }
         }),
         ...(images && {
           images: {
-            create: images.map((url: string) => ({ url }))
+            create: images.map((image: { id: string; url: string }) => ({ url: image.url }))
           }
         }),
       },
@@ -126,6 +128,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
+  const session = await requireAuth()
+  if (!session) return unauthorizedError()
   try {
     const { id } = await params
 
