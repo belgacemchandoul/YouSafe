@@ -2,11 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   MapPin,
-  Video,
   ArrowRight,
   CheckCircle,
+  FileText,
   Building2,
-  PlayCircle,
   Accessibility,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +14,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/app/components/shared";
 import prisma from "@/lib/prisma";
 import type { Metadata } from "next";
+import { VideoPlayer } from "@/app/components/shared";
 
 export const metadata: Metadata = {
   title: "Home",
   description:
     "Find wheelchair friendly restaurants, hotels, transport and more across Ireland. Your guide to accessible places.",
 };
+
 async function getFeaturedLocations() {
   return await prisma.location.findMany({
     where: {
@@ -36,11 +37,17 @@ async function getFeaturedLocations() {
 }
 
 async function getStats() {
-  const [totalLocations, totalMedia] = await Promise.all([
+  const [totalLocations, totalMedia, videos, totalPosts] = await Promise.all([
     prisma.location.count({ where: { isApproved: true } }),
     prisma.media.count(),
+    prisma.media.findMany({
+      where: { type: "VIDEO" },
+      orderBy: { createdAt: "desc" },
+      take: 2,
+    }),
+    prisma.blogPost.count({ where: { published: true } }),
   ]);
-  return { totalLocations, totalMedia };
+  return { totalLocations, totalMedia, videos, totalPosts };
 }
 
 export default async function HomePage() {
@@ -48,6 +55,8 @@ export default async function HomePage() {
     getFeaturedLocations(),
     getStats(),
   ]);
+
+  const { videos, totalPosts } = stats;
 
   return (
     <div className="flex flex-col select-none">
@@ -125,14 +134,14 @@ export default async function HomePage() {
                 },
                 {
                   label: "Cities Covered",
-                  value: "5+",
+                  value: "1",
                   icon: <Building2 size={22} className="text-[#5DBB3F]" />,
                   bg: "bg-green-50",
                 },
                 {
-                  label: "Media Resources",
-                  value: stats.totalMedia,
-                  icon: <PlayCircle size={22} className="text-purple-500" />,
+                  label: "Blog Posts",
+                  value: totalPosts,
+                  icon: <FileText size={22} className="text-purple-500" />,
                   bg: "bg-purple-50",
                 },
                 {
@@ -196,12 +205,12 @@ export default async function HomePage() {
                 cta: "Browse Locations",
               },
               {
-                icon: <Video size={28} className="text-[#2B8FD4]" />,
-                title: "Media Resources",
+                icon: <FileText size={28} className="text-[#2B8FD4]" />,
+                title: "Blog & Guides",
                 description:
-                  "Watch videos and listen to audio guides about wheelchair accessibility across Ireland.",
-                href: "/media",
-                cta: "View Media",
+                  "Read articles and guides about wheelchair accessibility across Ireland.",
+                href: "/blog",
+                cta: "Read Blog",
               },
             ].map((feature, index) => (
               <FadeIn key={feature.title} direction="up" delay={index * 0.15}>
@@ -302,7 +311,36 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+      {/* Videos Section */}
+      {videos.length > 0 && (
+        <section className="bg-white py-16 sm:py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <FadeIn direction="up">
+              <div className="text-center mb-10">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">
+                  Learn About Accessibility
+                </h2>
+                <p className="text-slate-500 max-w-2xl mx-auto">
+                  Watch our guides about wheelchair accessibility across
+                  Ireland.
+                </p>
+              </div>
+            </FadeIn>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {videos.map((video, index) => (
+                <FadeIn key={video.id} direction="up" delay={index * 0.15}>
+                  <VideoPlayer
+                    url={video.url}
+                    title={video.title}
+                    description={video.description}
+                  />
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
       {/* CTA Section */}
       <section className="bg-[#2B8FD4] text-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

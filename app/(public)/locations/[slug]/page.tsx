@@ -1,22 +1,22 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPin, ArrowLeft, CheckCircle } from "lucide-react";
+import { MapPin, ArrowLeft, CheckCircle, Star, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/app/components/shared";
 import prisma from "@/lib/prisma";
 import { Category } from "@/app/generated/prisma/client";
 import type { Metadata } from "next";
 
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const location = await getLocation(slug);
-
-  if (!location) {
-    return { title: "Location Not Found" };
-  }
-
+  if (!location) return { title: "Location Not Found" };
   return {
     title: location.name,
     description: location.description,
@@ -27,17 +27,11 @@ export async function generateMetadata({
     },
   };
 }
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
 
 async function getLocation(slug: string) {
   return await prisma.location.findUnique({
     where: { slug },
-    include: {
-      features: true,
-      images: true,
-    },
+    include: { features: true, images: true },
   });
 }
 
@@ -53,10 +47,28 @@ async function getRelatedLocations(category: string, currentSlug: string) {
   });
 }
 
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          size={16}
+          className={
+            i < rating
+              ? "text-amber-400 fill-amber-400"
+              : "text-slate-200 fill-slate-200"
+          }
+        />
+      ))}
+      <span className="text-sm text-slate-600 ml-1">{rating}/5</span>
+    </div>
+  );
+}
+
 export default async function LocationPage({ params }: PageProps) {
   const { slug } = await params;
   const location = await getLocation(slug);
-
   if (!location) notFound();
 
   const relatedLocations = await getRelatedLocations(location.category, slug);
@@ -67,7 +79,6 @@ export default async function LocationPage({ params }: PageProps) {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <FadeIn direction="up">
-            {/* Back Button */}
             <Link
               href="/locations"
               className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors mb-6"
@@ -78,45 +89,52 @@ export default async function LocationPage({ params }: PageProps) {
 
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="space-y-3">
-                {/* Category + Featured */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline">
-                    {location.category.charAt(0) +
-                      location.category.slice(1).toLowerCase()}
+                    {location.category.replace("_", " ").charAt(0) +
+                      location.category
+                        .replace("_", " ")
+                        .slice(1)
+                        .toLowerCase()}
                   </Badge>
                   {location.isFeatured && (
                     <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50">
                       ⭐ Featured
                     </Badge>
                   )}
+                  {location.verified && (
+                    <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+                      ✓ Verified
+                    </Badge>
+                  )}
                   {location.isApproved && (
                     <Badge className="bg-green-50 text-green-700 hover:bg-green-50">
-                      ✓ Verified
+                      ✓ Approved
                     </Badge>
                   )}
                 </div>
 
-                {/* Name */}
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
                   {location.name}
                 </h1>
 
-                {/* Address */}
                 <p className="text-slate-500 flex items-center gap-2">
                   <MapPin size={16} className="text-[#2B8FD4] shrink-0" />
                   {location.address}, {location.city}
                 </p>
-              </div>
 
-              {/* Map Link */}
+                {location.accessibilityRating && (
+                  <StarRating rating={location.accessibilityRating} />
+                )}
+              </div>
 
               <a
                 href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg 
-                  bg-[#2B8FD4] text-white text-sm font-medium hover:bg-[#1a6fa8] 
-                  transition-colors shrink-0 w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg
+                    bg-[#2B8FD4] text-white text-sm font-medium hover:bg-[#1a6fa8]
+                    transition-colors shrink-0 w-full sm:w-auto"
               >
                 <MapPin size={16} />
                 Open in Google Maps
@@ -141,6 +159,23 @@ export default async function LocationPage({ params }: PageProps) {
                 </p>
               </div>
             </FadeIn>
+
+            {/* Accessibility Notes */}
+            {location.accessibilityNotes && (
+              <FadeIn direction="up" delay={0.05}>
+                <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6 sm:p-8">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText size={18} className="text-[#2B8FD4]" />
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Accessibility Notes
+                    </h2>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-sm">
+                    {location.accessibilityNotes}
+                  </p>
+                </div>
+              </FadeIn>
+            )}
 
             {/* Accessibility Features */}
             {location.features.length > 0 && (
@@ -170,7 +205,6 @@ export default async function LocationPage({ params }: PageProps) {
             )}
 
             {/* Map Embed */}
-            {/* Map Embed */}
             <FadeIn direction="up" delay={0.2}>
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-6 sm:p-8 pb-4">
@@ -181,7 +215,6 @@ export default async function LocationPage({ params }: PageProps) {
                     {location.address}, {location.city}
                   </p>
                 </div>
-
                 <iframe
                   src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude - 0.01},${location.latitude - 0.01},${location.longitude + 0.01},${location.latitude + 0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
                   width="100%"
@@ -190,7 +223,6 @@ export default async function LocationPage({ params }: PageProps) {
                   title={`Map showing ${location.name}`}
                   className="w-full"
                 />
-
                 <div className="p-4 border-t border-slate-100">
                   <a
                     href={`https://www.google.com/maps?q=${location.latitude},${location.longitude}`}
@@ -214,7 +246,7 @@ export default async function LocationPage({ params }: PageProps) {
                 <h2 className="text-lg font-semibold text-slate-900 mb-4">
                   Quick Info
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <MapPin
                       size={16}
@@ -237,6 +269,20 @@ export default async function LocationPage({ params }: PageProps) {
                       <p className="text-sm text-slate-700">{location.city}</p>
                     </div>
                   </div>
+                  {location.accessibilityRating && (
+                    <div className="flex items-start gap-3">
+                      <Star
+                        size={16}
+                        className="text-amber-400 shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-slate-500 mb-0.5">
+                          Accessibility Rating
+                        </p>
+                        <StarRating rating={location.accessibilityRating} />
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-start gap-3">
                     <CheckCircle
                       size={16}

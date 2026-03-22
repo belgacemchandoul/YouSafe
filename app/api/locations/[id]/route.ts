@@ -5,30 +5,23 @@ import {
   successResponse,
   errorResponse,
   validationError,
-  notFoundError
+  notFoundError,
+  unauthorizedError,
+  requireAuth,
 } from '@/app/utils/api'
-import {
-  isValidCategory,
-  isValidCoordinates
-} from '@/app/utils/validation'
-import { requireAuth, unauthorizedError } from '@/app/utils/api'
+import { isValidCategory, isValidCoordinates } from '@/app/utils/validation'
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   try {
     const { id } = await params
-
     const location = await prisma.location.findUnique({
       where: { id },
-      include: {
-        features: true,
-        images: true,
-      }
+      include: { features: true, images: true }
     })
-
     if (!location) return notFoundError('Location')
-
     return successResponse(location)
   } catch (error) {
     console.error('[GET /api/locations/[id]]', error)
@@ -40,31 +33,20 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const session = await requireAuth()
-  if (!session) return unauthorizedError()
   try {
+    const session = await requireAuth()
+    if (!session) return unauthorizedError()
+
     const { id } = await params
     const body: UpdateLocationBody = await req.json()
-
     const {
-      name,
-      slug,
-      description,
-      address,
-      city,
-      latitude,
-      longitude,
-      category,
-      isApproved,
-      isFeatured,
-      features,
-      images,
+      name, slug, description, address, city,
+      latitude, longitude, category, isApproved,
+      isFeatured, verified, accessibilityRating,
+      accessibilityNotes, features, images,
     } = body
 
-    const existing = await prisma.location.findUnique({
-      where: { id }
-    })
-
+    const existing = await prisma.location.findUnique({ where: { id } })
     if (!existing) return notFoundError('Location')
 
     if (category && !isValidCategory(category)) {
@@ -76,15 +58,11 @@ export async function PUT(
     }
 
     if (features) {
-      await prisma.feature.deleteMany({
-        where: { locationId: id }
-      })
+      await prisma.feature.deleteMany({ where: { locationId: id } })
     }
 
     if (images) {
-      await prisma.image.deleteMany({
-        where: { locationId: id }
-      })
+      await prisma.image.deleteMany({ where: { locationId: id } })
     }
 
     const updated = await prisma.location.update({
@@ -100,21 +78,17 @@ export async function PUT(
         ...(category && { category }),
         ...(isApproved !== undefined && { isApproved }),
         ...(isFeatured !== undefined && { isFeatured }),
+        ...(verified !== undefined && { verified }),
+        ...(accessibilityRating !== undefined && { accessibilityRating }),
+        ...(accessibilityNotes !== undefined && { accessibilityNotes }),
         ...(features && {
-          features: {
-            create: features.map((feature: { id: string; name: string }) => ({ name: feature.name }))
-          }
+          features: { create: features.map((name: string) => ({ name })) }
         }),
         ...(images && {
-          images: {
-            create: images.map((image: { id: string; url: string }) => ({ url: image.url }))
-          }
+          images: { create: images.map((url: string) => ({ url })) }
         }),
       },
-      include: {
-        features: true,
-        images: true,
-      }
+      include: { features: true, images: true }
     })
 
     return successResponse(updated)
@@ -128,21 +102,15 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const session = await requireAuth()
-  if (!session) return unauthorizedError()
   try {
+    const session = await requireAuth()
+    if (!session) return unauthorizedError()
+
     const { id } = await params
-
-    const existing = await prisma.location.findUnique({
-      where: { id }
-    })
-
+    const existing = await prisma.location.findUnique({ where: { id } })
     if (!existing) return notFoundError('Location')
 
-    await prisma.location.delete({
-      where: { id }
-    })
-
+    await prisma.location.delete({ where: { id } })
     return successResponse({ message: 'Location deleted successfully' })
   } catch (error) {
     console.error('[DELETE /api/locations/[id]]', error)

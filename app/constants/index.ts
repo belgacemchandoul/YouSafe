@@ -9,7 +9,18 @@ export const CATEGORIES = [
   'PARK',
   'EDUCATION',
   'ENTERTAINMENT',
-  'OTHER'
+  'SPORT',
+  'GOVERNMENT',
+  'RELIGIOUS',
+  'TOURISM',
+  'SUPERMARKET',
+  'BANK',
+  'POST_OFFICE',
+  'MUSEUM',
+  'LIBRARY',
+  'BEACH',
+  'PUBLIC_TOILET',
+  'OTHER',
 ] as const
 
 export const ACCESSIBILITY_FEATURES = [
@@ -21,6 +32,28 @@ export const ACCESSIBILITY_FEATURES = [
   'Lowered Counter',
   'Braille Signage',
   'Hearing Loop',
+  'Automatic Doors',
+  'Step-Free Entrance',
+  'Level Flooring',
+  'Accessible Seating Area',
+  'Wheelchair Turning Space',
+  'Accessible Changing Room',
+  'Tactile Paving',
+  'Visual Display Screens',
+  'Staff Assistance Available',
+  'Accessible Ticket Machine',
+  'Accessible Lift Buttons',
+  'Accessible Emergency Exit',
+  'Accessible Pathways',
+  'Reserved Wheelchair Spaces',
+  'Audio Announcements',
+  'Accessible Playground Equipment',
+  'Accessible Picnic Tables',
+  'Accessible Viewing Platform',
+  'Low Gradient Slope',
+  'Handrails',
+  'Accessible Shower',
+  'Pool Hoist',
 ] as const
 
 export const MEDIA_TYPES = ['VIDEO', 'AUDIO'] as const

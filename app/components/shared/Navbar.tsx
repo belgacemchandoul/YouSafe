@@ -17,7 +17,8 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Locations", href: "/locations" },
   { label: "Map", href: "/map" },
-  { label: "Media", href: "/media" },
+  // { label: "Media", href: "/media" },
+  { label: "Blog", href: "/blog" },
 ];
 
 export default function Navbar() {

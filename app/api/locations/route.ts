@@ -5,12 +5,10 @@ import {
   successResponse,
   errorResponse,
   validationError,
+  unauthorizedError,
+  requireAuth,
 } from '@/app/utils/api'
-import {
-  isValidCategory,
-  isValidCoordinates
-} from '@/app/utils/validation'
-import { requireAuth, unauthorizedError } from '@/app/utils/api'
+import { isValidCategory, isValidCoordinates } from '@/app/utils/validation'
 
 export async function GET(): Promise<Response> {
   try {
@@ -19,11 +17,8 @@ export async function GET(): Promise<Response> {
         features: true,
         images: true,
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' }
     })
-
     return successResponse(locations)
   } catch (error) {
     console.error('[GET /api/locations]', error)
@@ -32,24 +27,16 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(req: NextRequest): Promise<Response> {
-  const session = await requireAuth()
-if (!session) return unauthorizedError()
   try {
-    const body: CreateLocationBody = await req.json()
+    const session = await requireAuth()
+    if (!session) return unauthorizedError()
 
+    const body: CreateLocationBody = await req.json()
     const {
-      name,
-      slug,
-      description,
-      address,
-      city,
-      latitude,
-      longitude,
-      category,
-      isApproved,
-      isFeatured,
-      features,
-      images,
+      name, slug, description, address, city,
+      latitude, longitude, category, isApproved,
+      isFeatured, verified, accessibilityRating,
+      accessibilityNotes, features, images,
     } = body
 
     if (!name || !slug || !description || !address || !city || !latitude || !longitude || !category) {
@@ -66,27 +53,21 @@ if (!session) return unauthorizedError()
 
     const location = await prisma.location.create({
       data: {
-        name,
-        slug,
-        description,
-        address,
-        city,
-        latitude,
-        longitude,
-        category,
+        name, slug, description, address, city,
+        latitude, longitude, category,
         isApproved: isApproved ?? true,
         isFeatured: isFeatured ?? false,
+        verified: verified ?? false,
+        accessibilityRating: accessibilityRating ?? null,
+        accessibilityNotes: accessibilityNotes ?? null,
         features: {
-          create: features?.map((feature: { id: string; name: string }) => ({ name: feature.name })) ?? []
+          create: features?.map((name: string) => ({ name })) ?? []
         },
         images: {
-          create: images?.map((image: { id: string; url: string }) => ({ url: image.url })) ?? []
+          create: images?.map((url: string) => ({ url })) ?? []
         }
       },
-      include: {
-        features: true,
-        images: true,
-      }
+      include: { features: true, images: true }
     })
 
     return successResponse(location, 201)

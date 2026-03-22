@@ -18,6 +18,8 @@ interface Location {
   category: string;
   isApproved: boolean;
   isFeatured: boolean;
+  verified?: boolean;
+  accessibilityRating?: number | null;
   features: Feature[];
 }
 
@@ -36,6 +38,17 @@ const CATEGORY_COLORS: Record<string, string> = {
   PARK: "#5DBB3F",
   EDUCATION: "#0891b2",
   ENTERTAINMENT: "#7c3aed",
+  SPORT: "#0d9488",
+  GOVERNMENT: "#1d4ed8",
+  RELIGIOUS: "#92400e",
+  TOURISM: "#0e7490",
+  SUPERMARKET: "#15803d",
+  BANK: "#1e40af",
+  POST_OFFICE: "#b45309",
+  MUSEUM: "#7e22ce",
+  LIBRARY: "#0f766e",
+  BEACH: "#0369a1",
+  PUBLIC_TOILET: "#475569",
   OTHER: "#64748b",
 };
 
@@ -46,7 +59,6 @@ export default function MapView({ locations }: MapViewProps) {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Remove existing map instance if it exists
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
@@ -55,11 +67,9 @@ export default function MapView({ locations }: MapViewProps) {
     const initMap = async () => {
       const L = (await import("leaflet")).default;
 
-      // Check again after async import
       if (!mapRef.current) return;
       if (mapInstanceRef.current) return;
 
-      // Fix default marker icons
       delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
         ._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -71,7 +81,6 @@ export default function MapView({ locations }: MapViewProps) {
           "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
       });
 
-      // Initialize map centered on Dublin
       const map = L.map(mapRef.current, {
         center: [53.3498, -6.2603],
         zoom: 13,
@@ -80,18 +89,15 @@ export default function MapView({ locations }: MapViewProps) {
 
       mapInstanceRef.current = map;
 
-      // OpenStreetMap tiles
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }).addTo(map);
 
-      // Add markers for each location
       locations.forEach((location) => {
         const color = CATEGORY_COLORS[location.category] || "#64748b";
 
-        // Custom colored marker
         const icon = L.divIcon({
           className: "",
           html: `
@@ -144,9 +150,36 @@ export default function MapView({ locations }: MapViewProps) {
             </div>`
             : "";
 
+        const ratingHtml = location.accessibilityRating
+          ? `<div style="margin-top:6px;display:flex;gap:2px;">
+              ${Array.from({ length: 5 })
+                .map(
+                  (_, i) => `
+                <span style="font-size:12px;color:${i < location.accessibilityRating! ? "#f59e0b" : "#e2e8f0"};">★</span>
+              `,
+                )
+                .join("")}
+            </div>`
+          : "";
+
+        const verifiedHtml = location.verified
+          ? `<span style="
+              background:#eff6ff;
+              color:#1d4ed8;
+              padding:2px 8px;
+              border-radius:9999px;
+              font-size:11px;
+              font-weight:600;
+            ">✓ Verified</span>`
+          : "";
+
+        const categoryLabel = location.category.replace("_", " ");
+        const categoryDisplay =
+          categoryLabel.charAt(0) + categoryLabel.slice(1).toLowerCase();
+
         const popupContent = `
           <div style="min-width:200px;max-width:260px;font-family:sans-serif;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:4px;flex-wrap:wrap;">
               <span style="
                 background:${color}20;
                 color:${color};
@@ -154,11 +187,15 @@ export default function MapView({ locations }: MapViewProps) {
                 border-radius:9999px;
                 font-size:11px;
                 font-weight:600;
-              ">${location.category.charAt(0) + location.category.slice(1).toLowerCase()}</span>
-              ${location.isFeatured ? '<span style="font-size:12px;">⭐</span>' : ""}
+              ">${categoryDisplay}</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                ${verifiedHtml}
+                ${location.isFeatured ? '<span style="font-size:12px;">⭐</span>' : ""}
+              </div>
             </div>
             <p style="font-weight:700;font-size:14px;margin:0 0 4px;color:#0f172a;">${location.name}</p>
             <p style="font-size:12px;color:#64748b;margin:0 0 4px;">📍 ${location.address}</p>
+            ${ratingHtml}
             ${featuresHtml}
             <a href="/locations/${location.slug}" style="
               display:inline-flex;

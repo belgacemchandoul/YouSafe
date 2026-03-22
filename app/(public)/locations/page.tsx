@@ -12,20 +12,15 @@ export const metadata: Metadata = {
   description:
     "Browse all wheelchair friendly locations across Ireland. Filter by category and city.",
 };
+
 interface SearchParams {
   category?: string;
   city?: string;
+  feature?: string;
 }
 
-type Feature = {
-  id: string;
-  name: string;
-};
-
-type Image = {
-  id: string;
-  url: string;
-};
+type Feature = { id: string; name: string };
+type Image = { id: string; url: string };
 
 type LocationWithExtras = {
   id: string;
@@ -39,6 +34,9 @@ type LocationWithExtras = {
   category: string;
   isApproved: boolean;
   isFeatured: boolean;
+  verified: boolean;
+  accessibilityRating: number | null;
+  accessibilityNotes: string | null;
   createdAt: Date;
   updatedAt: Date;
   features: Feature[];
@@ -56,18 +54,44 @@ const CATEGORY_ORDER = [
   "PARK",
   "EDUCATION",
   "ENTERTAINMENT",
+  "SPORT",
+  "GOVERNMENT",
+  "RELIGIOUS",
+  "TOURISM",
+  "SUPERMARKET",
+  "BANK",
+  "POST_OFFICE",
+  "MUSEUM",
+  "LIBRARY",
+  "BEACH",
+  "PUBLIC_TOILET",
   "OTHER",
+];
+
+const TOP_FEATURES = [
+  "Ramp",
+  "Elevator",
+  "Accessible Toilet",
+  "Accessible Parking",
+  "Step-Free Entrance",
+  "Hearing Loop",
+  "Automatic Doors",
+  "Wide Doorways",
 ];
 
 async function getLocations(
   category?: string,
   city?: string,
+  feature?: string,
 ): Promise<LocationWithExtras[]> {
   const locations = await prisma.location.findMany({
     where: {
       isApproved: true,
       ...(category && { category: category as Category }),
       ...(city && { city: { contains: city, mode: "insensitive" } }),
+      ...(feature && {
+        features: { some: { name: { equals: feature, mode: "insensitive" } } },
+      }),
     },
     include: {
       features: true,
@@ -93,14 +117,29 @@ async function getCities() {
   return locations.map((l) => l.city);
 }
 
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <span
+          key={i}
+          className={`text-xs ${i < rating ? "text-amber-400" : "text-slate-200"}`}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default async function LocationsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { category, city } = await searchParams;
+  const { category, city, feature } = await searchParams;
   const [locations, cities] = await Promise.all([
-    getLocations(category, city),
+    getLocations(category, city, feature),
     getCities(),
   ]);
 
@@ -124,12 +163,23 @@ export default async function LocationsPage({
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <FadeIn direction="left" className="lg:w-64 shrink-0">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 lg:sticky lg:top-24">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-slate-500" />
-                <h2 className="font-semibold text-slate-900 text-sm">
-                  Filters
-                </h2>
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal size={16} className="text-slate-500" />
+                  <h2 className="font-semibold text-slate-900 text-sm">
+                    Filters
+                  </h2>
+                </div>
+                {(category || city || feature) && (
+                  <Link
+                    href="/locations"
+                    scroll={false}
+                    className="text-xs text-[#2B8FD4] hover:underline"
+                  >
+                    Clear all
+                  </Link>
+                )}
               </div>
 
               {/* Category Filter */}
@@ -139,30 +189,23 @@ export default async function LocationsPage({
                 </h3>
                 <div className="flex flex-col gap-1">
                   <Link
-                    href="/locations"
+                    href={`/locations${city ? `?city=${city}` : ""}${feature ? `${city ? "&" : "?"}feature=${feature}` : ""}`}
                     scroll={false}
                     className={`px-3 py-2 rounded-lg text-sm transition-colors
-                      ${
-                        !category
-                          ? "bg-[#2B8FD4] text-white"
-                          : "text-slate-600 hover:bg-slate-50"
-                      }`}
+                      ${!category ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
                     All Categories
                   </Link>
                   {CATEGORY_ORDER.map((cat) => (
                     <Link
                       key={cat}
-                      href={`/locations?category=${cat}${city ? `&city=${city}` : ""}`}
+                      href={`/locations?category=${cat}${city ? `&city=${city}` : ""}${feature ? `&feature=${feature}` : ""}`}
                       scroll={false}
                       className={`px-3 py-2 rounded-lg text-sm transition-colors
-                        ${
-                          category === cat
-                            ? "bg-[#2B8FD4] text-white"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                        ${category === cat ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                     >
-                      {cat.charAt(0) + cat.slice(1).toLowerCase()}
+                      {cat.replace("_", " ").charAt(0) +
+                        cat.replace("_", " ").slice(1).toLowerCase()}
                     </Link>
                   ))}
                 </div>
@@ -176,27 +219,20 @@ export default async function LocationsPage({
                   </h3>
                   <div className="flex flex-col gap-1">
                     <Link
-                      href={`/locations${category ? `?category=${category}` : ""}`}
+                      href={`/locations${category ? `?category=${category}` : ""}${feature ? `${category ? "&" : "?"}feature=${feature}` : ""}`}
                       scroll={false}
                       className={`px-3 py-2 rounded-lg text-sm transition-colors
-                        ${
-                          !city
-                            ? "bg-[#2B8FD4] text-white"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                        ${!city ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                     >
                       All Cities
                     </Link>
                     {cities.map((c) => (
                       <Link
                         key={c}
-                        href={`/locations?city=${c}${category ? `&category=${category}` : ""}`}
+                        href={`/locations?city=${c}${category ? `&category=${category}` : ""}${feature ? `&feature=${feature}` : ""}`}
+                        scroll={false}
                         className={`px-3 py-2 rounded-lg text-sm transition-colors
-                          ${
-                            city === c
-                              ? "bg-[#2B8FD4] text-white"
-                              : "text-slate-600 hover:bg-slate-50"
-                          }`}
+                          ${city === c ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                       >
                         {c}
                       </Link>
@@ -204,6 +240,34 @@ export default async function LocationsPage({
                   </div>
                 </div>
               )}
+
+              {/* Feature Filter */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Accessibility Feature
+                </h3>
+                <div className="flex flex-col gap-1">
+                  <Link
+                    href={`/locations${category ? `?category=${category}` : ""}${city ? `${category ? "&" : "?"}city=${city}` : ""}`}
+                    scroll={false}
+                    className={`px-3 py-2 rounded-lg text-sm transition-colors
+                      ${!feature ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                  >
+                    All Features
+                  </Link>
+                  {TOP_FEATURES.map((f) => (
+                    <Link
+                      key={f}
+                      href={`/locations?feature=${encodeURIComponent(f)}${category ? `&category=${category}` : ""}${city ? `&city=${city}` : ""}`}
+                      scroll={false}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors
+                        ${feature === f ? "bg-[#2B8FD4] text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      {f}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
           </FadeIn>
 
@@ -237,14 +301,24 @@ export default async function LocationsPage({
                           {/* Top Row */}
                           <div className="flex items-start justify-between gap-2">
                             <Badge variant="outline" className="text-xs">
-                              {location.category.charAt(0) +
-                                location.category.slice(1).toLowerCase()}
+                              {location.category.replace("_", " ").charAt(0) +
+                                location.category
+                                  .replace("_", " ")
+                                  .slice(1)
+                                  .toLowerCase()}
                             </Badge>
-                            {location.isFeatured && (
-                              <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 text-xs">
-                                ⭐ Featured
-                              </Badge>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {location.verified && (
+                                <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 text-xs">
+                                  ✓ Verified
+                                </Badge>
+                              )}
+                              {location.isFeatured && (
+                                <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 text-xs">
+                                  ⭐
+                                </Badge>
+                              )}
+                            </div>
                           </div>
 
                           {/* Name & Address */}
@@ -257,6 +331,11 @@ export default async function LocationsPage({
                               {location.address}
                             </p>
                           </div>
+
+                          {/* Rating */}
+                          {location.accessibilityRating && (
+                            <StarRating rating={location.accessibilityRating} />
+                          )}
 
                           {/* Description */}
                           <p className="text-slate-600 text-sm leading-relaxed line-clamp-2">

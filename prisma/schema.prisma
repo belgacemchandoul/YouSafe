@@ -30,21 +30,24 @@ model Admin {
 // ─────────────────────────────────────────
 
 model Location {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String
-  address     String
-  city        String
-  latitude    Float
-  longitude   Float
-  category    Category
-  isApproved  Boolean   @default(true)
-  isFeatured  Boolean   @default(false)
-  features    Feature[]
-  images      Image[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  name                String
+  slug                String    @unique
+  description         String
+  address             String
+  city                String
+  latitude            Float
+  longitude           Float
+  category            Category
+  isApproved          Boolean   @default(true)
+  isFeatured          Boolean   @default(false)
+  verified            Boolean   @default(false)
+  accessibilityRating Int?
+  accessibilityNotes  String?
+  features            Feature[]
+  images              Image[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model Feature {
@@ -63,6 +66,18 @@ model Image {
   createdAt  DateTime @default(now())
 }
 
+model BlogPost {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String
+  content    String
+  coverImage String?
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
 enum Category {
   RESTAURANT
   CAFE
@@ -74,6 +89,17 @@ enum Category {
   PARK
   EDUCATION
   ENTERTAINMENT
+  SPORT
+  GOVERNMENT
+  RELIGIOUS
+  TOURISM
+  SUPERMARKET
+  BANK
+  POST_OFFICE
+  MUSEUM
+  LIBRARY
+  BEACH
+  PUBLIC_TOILET
   OTHER
 }
 

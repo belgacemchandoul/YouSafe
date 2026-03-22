@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CreateLocationBody } from "@/app/types/locations";
+import { Location } from "@/app/generated/prisma/client";
 import {
   Table,
   TableBody,
@@ -47,19 +47,18 @@ import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { CATEGORIES, ACCESSIBILITY_FEATURES } from "@/app/constants";
 import { generateSlug } from "@/app/utils/slug";
 
-interface Location extends CreateLocationBody {
-  id: string;
+interface AdminLocation extends Omit<Location, "features" | "images"> {
   features: { id: string; name: string }[];
   images: { id: string; url: string }[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default function AdminLocationsPage() {
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<AdminLocation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const [editingLocation, setEditingLocation] = useState<AdminLocation | null>(
+    null,
+  );
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [serverError, setServerError] = useState<string>("");
 
@@ -75,12 +74,12 @@ export default function AdminLocationsPage() {
     defaultValues: {
       isApproved: true,
       isFeatured: false,
+      verified: false,
     },
   });
 
   const nameValue = watch("name");
 
-  // Auto generate slug from name
   useEffect(() => {
     if (!editingLocation && nameValue) {
       setValue("slug", generateSlug(nameValue));
@@ -108,14 +107,11 @@ export default function AdminLocationsPage() {
     setEditingLocation(null);
     setSelectedFeatures([]);
     setServerError("");
-    reset({
-      isApproved: true,
-      isFeatured: false,
-    });
+    reset({ isApproved: true, isFeatured: false, verified: false });
     setDialogOpen(true);
   };
 
-  const openEditDialog = (location: Location) => {
+  const openEditDialog = (location: AdminLocation) => {
     setEditingLocation(location);
     setSelectedFeatures(location.features.map((f) => f.name));
     setServerError("");
@@ -130,6 +126,9 @@ export default function AdminLocationsPage() {
       category: location.category as LocationFormData["category"],
       isApproved: location.isApproved,
       isFeatured: location.isFeatured,
+      verified: location.verified,
+      accessibilityRating: location.accessibilityRating ?? undefined,
+      accessibilityNotes: location.accessibilityNotes ?? undefined,
     });
     setDialogOpen(true);
   };
@@ -243,8 +242,7 @@ export default function AdminLocationsPage() {
                   {...register("description")}
                   placeholder="Describe the location..."
                   rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-input text-sm 
-                    outline-none focus:border-primary resize-none"
+                  className="w-full px-3 py-2 rounded-lg border border-input text-sm outline-none focus:border-primary resize-none"
                 />
                 {errors.description && (
                   <p className="text-red-500 text-xs">
@@ -325,7 +323,8 @@ export default function AdminLocationsPage() {
                   <SelectContent>
                     {CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        {cat.charAt(0) + cat.slice(1).toLowerCase()}
+                        {cat.replace("_", " ").charAt(0) +
+                          cat.replace("_", " ").slice(1).toLowerCase()}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -337,10 +336,41 @@ export default function AdminLocationsPage() {
                 )}
               </div>
 
+              {/* Accessibility Rating */}
+              <div className="space-y-1">
+                <Label>Accessibility Rating (1-5)</Label>
+                <Input
+                  {...register("accessibilityRating", { valueAsNumber: true })}
+                  type="number"
+                  min={1}
+                  max={5}
+                  placeholder="5"
+                />
+                {errors.accessibilityRating && (
+                  <p className="text-red-500 text-xs">
+                    {errors.accessibilityRating.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Accessibility Notes */}
+              <div className="space-y-1">
+                <Label>
+                  Accessibility Notes{" "}
+                  <span className="text-slate-400">(optional)</span>
+                </Label>
+                <textarea
+                  {...register("accessibilityNotes")}
+                  placeholder="Specific accessibility details..."
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-input text-sm outline-none focus:border-primary resize-none"
+                />
+              </div>
+
               {/* Accessibility Features */}
               <div className="space-y-2">
                 <Label>Accessibility Features</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border border-input rounded-lg">
                   {ACCESSIBILITY_FEATURES.map((feature) => (
                     <div key={feature} className="flex items-center gap-2">
                       <Checkbox
@@ -387,6 +417,19 @@ export default function AdminLocationsPage() {
                     Featured
                   </label>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="verified"
+                    checked={watch("verified")}
+                    onCheckedChange={(val) => setValue("verified", !!val)}
+                  />
+                  <label
+                    htmlFor="verified"
+                    className="text-sm text-slate-700 cursor-pointer"
+                  >
+                    Verified
+                  </label>
+                </div>
               </div>
 
               {/* Submit */}
@@ -431,6 +474,7 @@ export default function AdminLocationsPage() {
                     Category
                   </TableHead>
                   <TableHead className="hidden md:table-cell">City</TableHead>
+                  <TableHead className="hidden lg:table-cell">Rating</TableHead>
                   <TableHead className="hidden lg:table-cell">
                     Features
                   </TableHead>
@@ -446,12 +490,20 @@ export default function AdminLocationsPage() {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Badge variant="outline">
-                        {location.category.charAt(0) +
-                          location.category.slice(1).toLowerCase()}
+                        {location.category.replace("_", " ").charAt(0) +
+                          location.category
+                            .replace("_", " ")
+                            .slice(1)
+                            .toLowerCase()}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-slate-500">
                       {location.city}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-slate-500">
+                      {location.accessibilityRating
+                        ? `${location.accessibilityRating}/5`
+                        : "—"}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-slate-500">
                       {location.features.length} features
@@ -472,6 +524,11 @@ export default function AdminLocationsPage() {
                             Featured
                           </Badge>
                         )}
+                        {location.verified && (
+                          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 w-fit">
+                            Verified
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -483,7 +540,6 @@ export default function AdminLocationsPage() {
                         >
                           <Pencil size={16} />
                         </Button>
-
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button

@@ -12,7 +12,14 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { LayoutDashboard, MapPin, Video, LogOut, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  MapPin,
+  Video,
+  LogOut,
+  Menu,
+  FileText,
+} from "lucide-react";
 
 interface NavItem {
   label: string;
@@ -27,6 +34,7 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard size={18} />,
   },
   { label: "Locations", href: "/admin/locations", icon: <MapPin size={18} /> },
+  { label: "Blog", href: "/admin/blog", icon: <FileText size={18} /> },
   { label: "Media", href: "/admin/media", icon: <Video size={18} /> },
 ];
 
