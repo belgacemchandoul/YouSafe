@@ -69,12 +69,12 @@ export default function VideoPlayer({
       </div>
 
       {/* Info */}
-      <div className="p-5">
+      {/* <div className="p-5">
         <h3 className="font-semibold text-slate-900">{title}</h3>
         {description && (
           <p className="text-slate-500 text-sm mt-1">{description}</p>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }
