@@ -29,7 +29,7 @@ export default function Footer() {
                 { label: "Home", href: "/" },
                 { label: "Locations", href: "/locations" },
                 { label: "Map", href: "/map" },
-                { label: "Media", href: "/media" },
+                // { label: "Media", href: "/media" },
                 { label: "Blog", href: "/blog" },
               ].map((link) => (
                 <li key={link.href}>
@@ -56,14 +56,14 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
               </li>
-              <li>
-                <Link
+              {/* <li>
+                {/* <Link
                   href="/cookies"
                   className="text-sm hover:text-white transition-colors"
                 >
                   Cookie Policy
-                </Link>
-              </li>
+                </Link> */}
+              {/* </li> */}
             </ul>
           </div>
         </div>
