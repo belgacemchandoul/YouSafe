@@ -126,10 +126,10 @@ const sections = [
         If you have any questions about this privacy policy or how we handle
         your data, please contact us at{" "}
         <a
-          href="mailto:privacy@yousafe.ie"
+          href="mailto:yousafe.contact.inquire@gmail.com"
           className="text-[#2B8FD4] hover:underline font-medium"
         >
-          privacy@yousafe.ie
+          yousafe.contact.inquire@gmail.com
         </a>
       </p>
     ),
