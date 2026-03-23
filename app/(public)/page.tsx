@@ -11,10 +11,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FadeIn } from "@/app/components/shared";
+import { FadeIn, VideoPlayer } from "@/app/components/shared";
 import prisma from "@/lib/prisma";
 import type { Metadata } from "next";
-import { VideoPlayer } from "@/app/components/shared";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -24,14 +23,8 @@ export const metadata: Metadata = {
 
 async function getFeaturedLocations() {
   return await prisma.location.findMany({
-    where: {
-      isApproved: true,
-      isFeatured: true,
-    },
-    include: {
-      features: true,
-      images: true,
-    },
+    where: { isApproved: true, isFeatured: true },
+    include: { features: true, images: true },
     take: 3,
   });
 }
@@ -60,7 +53,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col select-none">
-      {/* Hero Section — no FadeIn here, it's above the fold */}
+      {/* Hero Section */}
       <section className="relative bg-linear-to-br from-[#2B8FD4] to-[#1a6fa8] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-36">
           <div className="max-w-3xl">
@@ -104,8 +97,6 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-
-        {/* Wave */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg
             viewBox="0 0 1440 60"
@@ -119,6 +110,37 @@ export default async function HomePage() {
           </svg>
         </div>
       </section>
+
+      {/* Video 1 — Between Hero and Stats */}
+      {videos[0] && (
+        <section className="relative py-16 sm:py-20 overflow-hidden bg-slate-50 flex justify-center">
+          <div className="relative w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+            {/* Glow closely around the video */}
+            <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+              <div
+                className="w-full max-w-4xl h-60 sm:h-90 
+          bg-[#2B8FD4]/20 blur-[100px] rounded-2xl"
+              />
+            </div>
+
+            <FadeIn direction="up">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 text-center">
+                {videos[0].title}
+              </h2>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.05}>
+              <div className="relative z-10">
+                <VideoPlayer
+                  url={videos[0].url}
+                  title={videos[0].title}
+                  description={videos[0].description}
+                />
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+      )}
 
       {/* Stats Section */}
       <section className="bg-slate-50 py-12 sm:py-16">
@@ -270,8 +292,11 @@ export default async function HomePage() {
                     <Card className="border border-slate-200 shadow-none hover:shadow-md transition-shadow h-full">
                       <CardContent className="p-6 space-y-4">
                         <Badge variant="outline" className="text-xs">
-                          {location.category.charAt(0) +
-                            location.category.slice(1).toLowerCase()}
+                          {location.category.replace("_", " ").charAt(0) +
+                            location.category
+                              .replace("_", " ")
+                              .slice(1)
+                              .toLowerCase()}
                         </Badge>
                         <div>
                           <h3 className="font-semibold text-slate-900">
@@ -311,36 +336,47 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-      {/* Videos Section */}
-      {videos.length > 0 && (
+
+      {/* Video 2 — Before CTA */}
+      {videos[1] && (
         <section className="bg-white py-16 sm:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <FadeIn direction="up">
-              <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">
-                  Learn About Accessibility
-                </h2>
-                <p className="text-slate-500 max-w-2xl mx-auto">
-                  Watch our guides about wheelchair accessibility across
-                  Ireland.
-                </p>
-              </div>
-            </FadeIn>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {videos.map((video, index) => (
-                <FadeIn key={video.id} direction="up" delay={index * 0.15}>
-                  <VideoPlayer
-                    url={video.url}
-                    title={video.title}
-                    description={video.description}
-                  />
-                </FadeIn>
-              ))}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+              {/* Video first on mobile, second on desktop */}
+              <FadeIn direction="left" className="order-2 lg:order-1">
+                <VideoPlayer
+                  url={videos[1].url}
+                  title={videos[1].title}
+                  description={videos[1].description}
+                />
+              </FadeIn>
+              <FadeIn direction="right" className="order-1 lg:order-2">
+                <div className="space-y-5">
+                  <Badge className="bg-[#5DBB3F]/10 text-[#5DBB3F] hover:bg-[#5DBB3F]/10">
+                    Accessibility Guide
+                  </Badge>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
+                    {videos[1].title}
+                  </h2>
+                  {videos[1].description && (
+                    <p className="text-slate-500 leading-relaxed">
+                      {videos[1].description}
+                    </p>
+                  )}
+                  <Link
+                    href="/map"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#5DBB3F] hover:gap-3 transition-all"
+                  >
+                    View on Map
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </FadeIn>
             </div>
           </div>
         </section>
       )}
+
       {/* CTA Section */}
       <section className="bg-[#2B8FD4] text-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
