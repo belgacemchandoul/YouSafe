@@ -27,7 +27,7 @@ export default function VideoPlayer({
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow select-none">
       <div className="aspect-video relative overflow-hidden bg-slate-900">
         {playing ? (
           <iframe

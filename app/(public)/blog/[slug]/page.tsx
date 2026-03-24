@@ -45,7 +45,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 select-none">
       {/* Cover Image */}
       {post.coverImage && (
         <div className="w-full h-64 sm:h-80 lg:h-96 overflow-hidden">

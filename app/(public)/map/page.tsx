@@ -111,7 +111,7 @@ export default async function MapPage({
 
   return (
     <div
-      className="flex flex-col lg:flex-row overflow-hidden"
+      className="flex flex-col lg:flex-row overflow-hidden select-none"
       style={{ height: "calc(100vh - 64px)" }}
     >
       {/* Sidebar */}

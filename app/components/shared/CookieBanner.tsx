@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Cookies from "js-cookie";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 const COOKIE_NAME = "yousafe_cookie_consent";
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState<boolean>(false);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
 
-  useEffect(() => {
     const consent = Cookies.get(COOKIE_NAME);
-    if (!consent) setVisible(true);
-  }, []);
+    return !consent;
+  });
 
   const acceptAll = () => {
     Cookies.set(COOKIE_NAME, "accepted", { expires: 365 });
@@ -33,7 +33,7 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 select-none">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-xl p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-2">
