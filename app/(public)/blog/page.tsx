@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/app/components/shared";
 import prisma from "@/lib/prisma";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -58,10 +59,12 @@ export default async function BlogPage() {
                   <Card className="border border-slate-200 shadow-none hover:shadow-md transition-shadow h-full bg-white">
                     {post.coverImage && (
                       <div className="aspect-video overflow-hidden rounded-t-xl">
-                        <img
+                        <Image
                           src={post.coverImage}
                           alt={post.title}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          width={400}
+                          height={225}
                         />
                       </div>
                     )}
