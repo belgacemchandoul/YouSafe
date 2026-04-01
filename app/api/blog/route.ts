@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import {
   successResponse,
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     })
 
+    revalidatePath('/')
+    revalidatePath('/blog', 'layout')
     return successResponse(post, 201)
   } catch (error) {
     console.error('[POST /api/blog]', error)

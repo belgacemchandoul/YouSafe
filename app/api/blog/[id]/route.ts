@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import {
   successResponse,
@@ -59,6 +60,8 @@ export async function PUT(
       }
     })
 
+    revalidatePath('/')
+    revalidatePath('/blog', 'layout')
     return successResponse(updated)
   } catch (error) {
     console.error('[PUT /api/blog/[id]]', error)
@@ -79,6 +82,8 @@ export async function DELETE(
     if (!existing) return notFoundError('Blog post')
 
     await prisma.blogPost.delete({ where: { id } })
+    revalidatePath('/')
+    revalidatePath('/blog', 'layout')
     return successResponse({ message: 'Blog post deleted successfully' })
   } catch (error) {
     console.error('[DELETE /api/blog/[id]]', error)

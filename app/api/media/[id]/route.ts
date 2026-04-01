@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import {
   successResponse,
@@ -65,6 +66,7 @@ export async function PUT(
       }
     })
 
+    revalidatePath('/')
     return successResponse(updated)
   } catch (error) {
     console.error('[PUT /api/media/[id]]', error)
@@ -89,6 +91,7 @@ export async function DELETE(
       where: { id }
     })
 
+    revalidatePath('/')
     return successResponse({ message: 'Media deleted successfully' })
   } catch (error) {
     console.error('[DELETE /api/media/[id]]', error)

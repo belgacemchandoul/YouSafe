@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { CreateMediaBody } from '@/app/types/media'
 import {
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest): Promise<Response> {
       }
     })
 
+    revalidatePath('/')
     return successResponse(media, 201)
   } catch (error) {
     console.error('[POST /api/media]', error)

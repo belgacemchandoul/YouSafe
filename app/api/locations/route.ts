@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { CreateLocationBody } from '@/app/types/locations'
 import {
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest): Promise<Response> {
       include: { features: true, images: true }
     })
 
+    revalidatePath('/')
+    revalidatePath('/locations', 'layout')
+    revalidatePath('/map')
     return successResponse(location, 201)
   } catch (error) {
     console.error('[POST /api/locations]', error)

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { UpdateLocationBody } from '@/app/types/locations'
 import {
@@ -91,6 +92,9 @@ export async function PUT(
       include: { features: true, images: true }
     })
 
+    revalidatePath('/')
+    revalidatePath('/locations', 'layout')
+    revalidatePath('/map')
     return successResponse(updated)
   } catch (error) {
     console.error('[PUT /api/locations/[id]]', error)
@@ -111,6 +115,9 @@ export async function DELETE(
     if (!existing) return notFoundError('Location')
 
     await prisma.location.delete({ where: { id } })
+    revalidatePath('/')
+    revalidatePath('/locations', 'layout')
+    revalidatePath('/map')
     return successResponse({ message: 'Location deleted successfully' })
   } catch (error) {
     console.error('[DELETE /api/locations/[id]]', error)
