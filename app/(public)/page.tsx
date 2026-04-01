@@ -35,7 +35,7 @@ async function getStats() {
     prisma.media.count(),
     prisma.media.findMany({
       where: { type: "VIDEO" },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" }, // ← change desc to asc
       take: 2,
     }),
     prisma.blogPost.count({ where: { published: true } }),
