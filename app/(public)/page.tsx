@@ -363,13 +363,6 @@ export default async function HomePage() {
                       {videos[1].description}
                     </p>
                   )}
-                  <Link
-                    href="/map"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-[#5DBB3F] hover:gap-3 transition-all"
-                  >
-                    View on Map
-                    <ArrowRight size={16} />
-                  </Link>
                 </div>
               </FadeIn>
             </div>
