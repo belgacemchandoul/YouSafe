@@ -13,11 +13,12 @@ const sections = [
     title: "1. Who We Are",
     content: (
       <p>
-        YouSafe is a wheelchair accessibility platform for Ireland, helping
-        users find accessible restaurants, hotels, transport, and other
-        services. This privacy policy explains how we collect, use, and protect
-        your personal data in compliance with the General Data Protection
-        Regulation (GDPR).
+        YouSafe is a registered Irish business and wheelchair accessibility
+        platform helping users find accessible restaurants, hotels, transport,
+        and other services across Ireland. We operate under Irish and EU law.
+        This privacy policy explains how we collect, use, and protect your
+        personal data in full compliance with the General Data Protection
+        Regulation (GDPR) and the European Accessibility Act 2025.
       </p>
     ),
   },
@@ -98,6 +99,7 @@ const sections = [
             "Request deletion of your data",
             "Withdraw consent at any time",
             "Lodge a complaint with the Data Protection Commission Ireland",
+            "Submit a data deletion request — we will action it within 30 days",
           ].map((right) => (
             <li key={right} className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#5DBB3F] mt-2 shrink-0" />
@@ -149,7 +151,7 @@ export default function PrivacyPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
               Privacy Policy
             </h1>
-            <p className="text-slate-500 text-sm">Last updated: March 2026</p>
+            <p className="text-slate-500 text-sm">Last updated: April 2026</p>
           </div>
         </FadeIn>
 

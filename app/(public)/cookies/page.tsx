@@ -226,7 +226,7 @@ export default function CookiePolicyPage() {
               Cookie Policy
             </h1>
 
-            <p className="text-slate-500 text-sm">Last updated: March 2026</p>
+            <p className="text-slate-500 text-sm">Last updated: April 2026</p>
           </div>
         </FadeIn>
 

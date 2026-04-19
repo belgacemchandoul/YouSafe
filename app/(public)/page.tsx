@@ -7,6 +7,8 @@ import {
   FileText,
   Building2,
   Accessibility,
+  Shield,
+  Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -192,7 +194,57 @@ export default async function HomePage() {
           </FadeIn>
         </div>
       </section>
-
+      {/* Trust Badges */}
+      <section className="bg-white py-10 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn direction="up">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: <Shield size={22} className="text-[#2B8FD4]" />,
+                  bg: "bg-blue-50",
+                  title: "Data Encrypted",
+                  description:
+                    "All data transmitted through YouSafe is secured with HTTPS and SSL encryption.",
+                },
+                {
+                  icon: <CheckCircle size={22} className="text-[#5DBB3F]" />,
+                  bg: "bg-green-50",
+                  title: "GDPR Compliant",
+                  description:
+                    "Fully compliant with GDPR and the European Accessibility Act 2025.",
+                },
+                {
+                  icon: <Lock size={22} className="text-amber-500" />,
+                  bg: "bg-amber-50",
+                  title: "No Data Sold",
+                  description:
+                    "We never store or sell your data to third parties. Your privacy is guaranteed.",
+                },
+              ].map((badge) => (
+                <div
+                  key={badge.title}
+                  className="flex items-start gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200"
+                >
+                  <div
+                    className={`w-10 h-10 rounded-xl ${badge.bg} flex items-center justify-center shrink-0`}
+                  >
+                    {badge.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900 text-sm">
+                      {badge.title}
+                    </h3>
+                    <p className="text-slate-500 text-xs leading-relaxed mt-1">
+                      {badge.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
       {/* Features Section */}
       <section className="bg-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

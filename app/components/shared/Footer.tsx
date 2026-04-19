@@ -69,6 +69,7 @@ export default function Footer() {
                 { label: "Locations", href: "/locations" },
                 { label: "Map", href: "/map" },
                 { label: "Blog", href: "/blog" },
+                { label: "FAQ", href: "/faq" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -147,7 +148,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-slate-800 mt-8 pt-8 text-xs text-center">
-          © {new Date().getFullYear()} YouSafe. All rights reserved.
+          © {new Date().getFullYear()} YouSafe.ie. All rights reserved.
         </div>
       </div>
     </footer>

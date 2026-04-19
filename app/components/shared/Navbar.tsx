@@ -19,6 +19,7 @@ const navLinks = [
   { label: "Locations", href: "/locations" },
   { label: "Map", href: "/map" },
   { label: "Blog", href: "/blog" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 function MobileMenu({ pathname }: { pathname: string }) {

@@ -1,6 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MapPin, ArrowLeft, CheckCircle, Star, FileText } from "lucide-react";
+import {
+  MapPin,
+  ArrowLeft,
+  CheckCircle,
+  Star,
+  FileText,
+  Shield,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/app/components/shared";
 import prisma from "@/lib/prisma";
@@ -112,6 +119,10 @@ export default async function LocationPage({ params }: PageProps) {
                       ✓ Approved
                     </Badge>
                   )}
+                  <Badge className="bg-slate-50 text-slate-700 hover:bg-slate-50 flex items-center gap-1">
+                    <Shield size={11} />
+                    Secure
+                  </Badge>
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
