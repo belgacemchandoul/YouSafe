@@ -41,7 +41,7 @@ export async function PUT(
     const { id } = await params
     const body: UpdateLocationBody = await req.json()
     const {
-      name, slug, description, address, city,
+      name, slug, description, address, eircode, city,
       latitude, longitude, category, isApproved,
       isFeatured, verified, accessibilityRating,
       accessibilityNotes, features, images,
@@ -73,6 +73,7 @@ export async function PUT(
         ...(slug && { slug }),
         ...(description && { description }),
         ...(address && { address }),
+        ...(eircode !== undefined && { eircode: eircode ?? null }),
         ...(city && { city }),
         ...(latitude && { latitude }),
         ...(longitude && { longitude }),

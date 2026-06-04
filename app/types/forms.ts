@@ -13,6 +13,7 @@ export const locationSchema = z.object({
   slug: z.string().min(1, 'Slug is required'),
   description: z.string().min(1, 'Description is required'),
   address: z.string().min(1, 'Address is required'),
+  eircode: z.string().optional(),
   city: z.string().min(1, 'City is required'),
   latitude: z.number().min(-90).max(90, 'Invalid latitude'),
   longitude: z.number().min(-180).max(180, 'Invalid longitude'),

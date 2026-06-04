@@ -10,6 +10,7 @@ export interface CreateLocationBody {
   slug: string
   description: string
   address: string
+  eircode?: string
   city: string
   latitude: number
   longitude: number

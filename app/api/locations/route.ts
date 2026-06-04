@@ -34,7 +34,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const body: CreateLocationBody = await req.json()
     const {
-      name, slug, description, address, city,
+      name, slug, description, address, eircode, city,
       latitude, longitude, category, isApproved,
       isFeatured, verified, accessibilityRating,
       accessibilityNotes, features, images,
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const location = await prisma.location.create({
       data: {
-        name, slug, description, address, city,
+        name, slug, description, address, eircode: eircode ?? null, city,
         latitude, longitude, category,
         isApproved: isApproved ?? true,
         isFeatured: isFeatured ?? false,

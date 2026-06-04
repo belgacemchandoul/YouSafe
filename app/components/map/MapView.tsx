@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  Pin,
+  InfoWindow,
+} from "@vis.gl/react-google-maps";
 
 interface Feature {
   id: string;
@@ -53,200 +60,262 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function MapView({ locations }: MapViewProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
+  const [selected, setSelected] = useState<Location | null>(null);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
+  const handleMarkerClick = useCallback((loc: Location) => {
+    setSelected(loc);
+  }, []);
 
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
+  const handleInfoClose = useCallback(() => {
+    setSelected(null);
+  }, []);
 
-    const initMap = async () => {
-      const L = (await import("leaflet")).default;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
-      if (!mapRef.current) return;
-      if (mapInstanceRef.current) return;
-
-      delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
-        ._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-        iconUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-        shadowUrl:
-          "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-      });
-
-      const map = L.map(mapRef.current, {
-        center: [53.3498, -6.2603],
-        zoom: 13,
-        zoomControl: true,
-      });
-
-      mapInstanceRef.current = map;
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(map);
-
-      locations.forEach((location) => {
-        const color = CATEGORY_COLORS[location.category] || "#64748b";
-
-        const icon = L.divIcon({
-          className: "",
-          html: `
-            <div style="
-              background-color: ${color};
-              width: 28px;
-              height: 28px;
-              border-radius: 50% 50% 50% 0;
-              transform: rotate(-45deg);
-              border: 2px solid white;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            "></div>
-          `,
-          iconSize: [28, 28],
-          iconAnchor: [14, 28],
-          popupAnchor: [0, -30],
-        });
-
-        const featuresHtml =
-          location.features.length > 0
-            ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
-              ${location.features
-                .slice(0, 3)
-                .map(
-                  (f) => `
-                <span style="
-                  background:#f0fdf4;
-                  color:#16a34a;
-                  padding:2px 8px;
-                  border-radius:9999px;
-                  font-size:11px;
-                  font-weight:500;
-                ">✓ ${f.name}</span>
-              `,
-                )
-                .join("")}
-              ${
-                location.features.length > 3
-                  ? `
-                <span style="
-                  background:#f1f5f9;
-                  color:#64748b;
-                  padding:2px 8px;
-                  border-radius:9999px;
-                  font-size:11px;
-                ">+${location.features.length - 3} more</span>
-              `
-                  : ""
-              }
-            </div>`
-            : "";
-
-        const ratingHtml = location.accessibilityRating
-          ? `<div style="margin-top:6px;display:flex;gap:2px;">
-              ${Array.from({ length: 5 })
-                .map(
-                  (_, i) => `
-                <span style="font-size:12px;color:${i < location.accessibilityRating! ? "#f59e0b" : "#e2e8f0"};">★</span>
-              `,
-                )
-                .join("")}
-            </div>`
-          : "";
-
-        const verifiedHtml = location.verified
-          ? `<span style="
-              background:#eff6ff;
-              color:#1d4ed8;
-              padding:2px 8px;
-              border-radius:9999px;
-              font-size:11px;
-              font-weight:600;
-            ">✓ Verified</span>`
-          : "";
-
-        const categoryLabel = location.category.replace("_", " ");
-        const categoryDisplay =
-          categoryLabel.charAt(0) + categoryLabel.slice(1).toLowerCase();
-
-        const popupContent = `
-          <div style="min-width:200px;max-width:260px;font-family:sans-serif;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:4px;flex-wrap:wrap;">
-              <span style="
-                background:${color}20;
-                color:${color};
-                padding:2px 8px;
-                border-radius:9999px;
-                font-size:11px;
-                font-weight:600;
-              ">${categoryDisplay}</span>
-              <div style="display:flex;gap:4px;align-items:center;">
-                ${verifiedHtml}
-                ${location.isFeatured ? '<span style="font-size:12px;">⭐</span>' : ""}
-              </div>
-            </div>
-            <p style="font-weight:700;font-size:14px;margin:0 0 4px;color:#0f172a;">${location.name}</p>
-            <p style="font-size:12px;color:#64748b;margin:0 0 4px;">📍 ${location.address}</p>
-            ${ratingHtml}
-            ${featuresHtml}
-            <a href="/locations/${location.slug}" style="
-              display:inline-flex;
-              align-items:center;
-              margin-top:10px;
-              padding:6px 14px;
-              background:#2B8FD4;
-              color:white;
-              border-radius:8px;
-              font-size:12px;
-              font-weight:600;
-              text-decoration:none;
-              width:100%;
-              justify-content:center;
-              box-sizing:border-box;
-            ">View Details →</a>
-          </div>
-        `;
-
-        L.marker([location.latitude, location.longitude], { icon })
-          .addTo(map)
-          .bindPopup(popupContent, {
-            maxWidth: 280,
-            className: "custom-popup",
-          });
-      });
-    };
-
-    initMap();
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [locations]);
+  if (!apiKey) {
+    return (
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          minHeight: "500px",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#f1f5f9",
+          color: "#94a3b8",
+          fontFamily: "sans-serif",
+          fontSize: "14px",
+        }}
+      >
+        Google Maps API key not configured.
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={mapRef}
-      style={{
-        height: "100%",
-        width: "100%",
-        minHeight: "500px",
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }}
-    />
+    <APIProvider apiKey={apiKey}>
+      <Map
+        defaultCenter={{ lat: 53.3498, lng: -6.2603 }}
+        defaultZoom={13}
+        gestureHandling="greedy"
+        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+        style={{
+          height: "100%",
+          width: "100%",
+          minHeight: "500px",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      >
+        {locations.map((loc) => {
+          const color = CATEGORY_COLORS[loc.category] ?? "#64748b";
+          return (
+            <AdvancedMarker
+              key={loc.id}
+              position={{ lat: loc.latitude, lng: loc.longitude }}
+              onClick={() => handleMarkerClick(loc)}
+            >
+              <Pin
+                background={color}
+                borderColor="white"
+                glyphColor="white"
+                scale={loc.isFeatured ? 1.3 : 1}
+              />
+            </AdvancedMarker>
+          );
+        })}
+
+        {selected &&
+          (() => {
+            const color = CATEGORY_COLORS[selected.category] ?? "#64748b";
+            const categoryLabel = selected.category.replace(/_/g, " ");
+            const categoryDisplay =
+              categoryLabel.charAt(0) + categoryLabel.slice(1).toLowerCase();
+
+            return (
+              <InfoWindow
+                position={{ lat: selected.latitude, lng: selected.longitude }}
+                onCloseClick={handleInfoClose}
+                pixelOffset={[0, -50]}
+              >
+                <div
+                  style={{
+                    minWidth: "200px",
+                    maxWidth: "260px",
+                    fontFamily: "sans-serif",
+                  }}
+                >
+                  {/* Category + verified + featured */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: "6px",
+                      gap: "4px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        background: `${color}20`,
+                        color,
+                        padding: "2px 8px",
+                        borderRadius: "9999px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {categoryDisplay}
+                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "4px",
+                        alignItems: "center",
+                      }}
+                    >
+                      {selected.verified && (
+                        <span
+                          style={{
+                            background: "#eff6ff",
+                            color: "#1d4ed8",
+                            padding: "2px 8px",
+                            borderRadius: "9999px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ✓ Verified
+                        </span>
+                      )}
+                      {selected.isFeatured && (
+                        <span style={{ fontSize: "12px" }}>⭐</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <p
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "14px",
+                      margin: "0 0 4px",
+                      color: "#0f172a",
+                    }}
+                  >
+                    {selected.name}
+                  </p>
+
+                  {/* Address */}
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#64748b",
+                      margin: "0 0 4px",
+                    }}
+                  >
+                    📍 {selected.address}
+                  </p>
+
+                  {/* Rating */}
+                  {selected.accessibilityRating != null && (
+                    <div
+                      style={{ marginTop: "6px", display: "flex", gap: "2px" }}
+                    >
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            fontSize: "12px",
+                            color:
+                              i < selected.accessibilityRating!
+                                ? "#f59e0b"
+                                : "#e2e8f0",
+                          }}
+                        >
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Features chips */}
+                  {selected.features.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "4px",
+                      }}
+                    >
+                      {selected.features.slice(0, 3).map((f) => (
+                        <span
+                          key={f.id}
+                          style={{
+                            background: "#f0fdf4",
+                            color: "#16a34a",
+                            padding: "2px 8px",
+                            borderRadius: "9999px",
+                            fontSize: "11px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          ✓ {f.name}
+                        </span>
+                      ))}
+                      {selected.features.length > 3 && (
+                        <span
+                          style={{
+                            background: "#f1f5f9",
+                            color: "#64748b",
+                            padding: "2px 8px",
+                            borderRadius: "9999px",
+                            fontSize: "11px",
+                          }}
+                        >
+                          +{selected.features.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* View Details button */}
+                  <a
+                    href={`/locations/${selected.slug}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      marginTop: "10px",
+                      padding: "6px 14px",
+                      background: "#2B8FD4",
+                      color: "white",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      width: "100%",
+                      justifyContent: "center",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    View Details →
+                  </a>
+                </div>
+              </InfoWindow>
+            );
+          })()}
+      </Map>
+    </APIProvider>
   );
 }

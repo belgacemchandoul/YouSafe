@@ -227,10 +227,13 @@ export default async function LocationPage({ params }: PageProps) {
                   </p>
                 </div>
                 <iframe
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude - 0.01},${location.latitude - 0.01},${location.longitude + 0.01},${location.latitude + 0.01}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
+                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${location.latitude},${location.longitude}&zoom=16`}
                   width="100%"
                   height="300"
                   style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
                   title={`Map showing ${location.name}`}
                   className="w-full"
                 />
@@ -270,6 +273,18 @@ export default async function LocationPage({ params }: PageProps) {
                       </p>
                     </div>
                   </div>
+                  {location.eircode && (
+                    <div className="flex items-start gap-3">
+                      <MapPin
+                        size={16}
+                        className="text-[#2B8FD4] shrink-0 mt-0.5"
+                      />
+                      <div>
+                        <p className="text-xs text-slate-500 mb-0.5">Eircode</p>
+                        <p className="text-sm text-slate-700">{location.eircode}</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-start gap-3">
                     <MapPin
                       size={16}

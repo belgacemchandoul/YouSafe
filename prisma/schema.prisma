@@ -35,6 +35,7 @@ model Location {
   slug                String    @unique
   description         String
   address             String
+  eircode             String?
   city                String
   latitude            Float
   longitude           Float

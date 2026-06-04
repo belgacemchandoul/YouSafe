@@ -1,7 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
 interface Feature {
   id: string;
   name: string;
@@ -21,14 +19,8 @@ interface Location {
   features: Feature[];
 }
 
-const MapView = dynamic(() => import("./MapView"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center">
-      <p className="text-slate-400 text-sm">Loading map...</p>
-    </div>
-  ),
-});
+// No longer needs dynamic import — @vis.gl/react-google-maps is SSR-safe
+import MapView from "./MapView";
 
 export default function MapWrapper({ locations }: { locations: Location[] }) {
   return <MapView locations={locations} />;

@@ -120,6 +120,7 @@ export default function AdminLocationsPage() {
       slug: location.slug,
       description: location.description,
       address: location.address,
+      eircode: location.eircode ?? undefined,
       city: location.city,
       latitude: location.latitude,
       longitude: location.longitude,
@@ -274,6 +275,14 @@ export default function AdminLocationsPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Eircode */}
+              <div className="space-y-1">
+                <Label>
+                  Eircode <span className="text-slate-400">(optional)</span>
+                </Label>
+                <Input {...register("eircode")} placeholder="D02 XY45" />
               </div>
 
               {/* Latitude + Longitude */}
