@@ -209,14 +209,15 @@ export default function AdminBlogPage() {
 
               {/* Slug */}
               <div className="space-y-1">
-                <Label>Slug</Label>
+                <Label>
+                  Slug <span className="text-slate-400">(auto-generated)</span>
+                </Label>
                 <Input
                   {...register("slug")}
                   placeholder="5-most-accessible-restaurants-in-dublin"
+                  readOnly
+                  className="bg-slate-50 text-slate-500 cursor-not-allowed"
                 />
-                {errors.slug && (
-                  <p className="text-red-500 text-xs">{errors.slug.message}</p>
-                )}
               </div>
 
               {/* Excerpt */}
