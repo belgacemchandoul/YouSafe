@@ -7,6 +7,8 @@ import prisma from "@/lib/prisma";
 import type { Metadata } from "next";
 import Image from "next/image";
 
+export const revalidate = 0
+
 export const metadata: Metadata = {
   title: "Blog",
   description: "Articles and guides about wheelchair accessibility in Ireland.",
