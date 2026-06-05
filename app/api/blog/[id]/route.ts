@@ -61,7 +61,8 @@ export async function PUT(
     })
 
     revalidatePath('/')
-    revalidatePath('/blog', 'layout')
+    revalidatePath('/blog')
+    revalidatePath(`/blog/${updated.slug}`)
     return successResponse(updated)
   } catch (error) {
     console.error('[PUT /api/blog/[id]]', error)
@@ -83,7 +84,8 @@ export async function DELETE(
 
     await prisma.blogPost.delete({ where: { id } })
     revalidatePath('/')
-    revalidatePath('/blog', 'layout')
+    revalidatePath('/blog')
+    revalidatePath(`/blog/${existing.slug}`)
     return successResponse({ message: 'Blog post deleted successfully' })
   } catch (error) {
     console.error('[DELETE /api/blog/[id]]', error)
